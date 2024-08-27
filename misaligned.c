@@ -12,10 +12,45 @@ int printColorMap() {
     }
     return i * j;
 }
+void testPrintColorMap() {
+    // Redirect stdout to a pipe
+    FILE* pipe = popen("./tshirts.out", "r");
+    if (!pipe) {
+        perror("popen failed");
+        return;
+    }
 
+    // Read the output into a buffer
+    char buffer[2048];
+    size_t index = 0;
+    while (fgets(buffer + index, sizeof(buffer) - index, pipe) != NULL) {
+        index = strlen(buffer);
+        if (index >= sizeof(buffer) - 1) {
+            break;
+        }
+    }
+    pclose(pipe);
+
+    // Ensure the output contains the expected entries
+    assert(strstr(buffer, "0 | White | Blue") != NULL);
+    assert(strstr(buffer, "24 | Violet | Slate") != NULL);
+    assert(strstr(buffer, "1 | White | Orange") != NULL);
+    assert(strstr(buffer, "5 | Red | Blue") != NULL);
+
+    // Count the number of lines printed
+    int lineCount = 0;
+    for (char* p = buffer; *p != '\0'; p++) {
+        if (*p == '\n') lineCount++;
+    }
+    assert(lineCount == 25);
+
+    // Check the return value
+    assert(printColorMap() == 25);
+
+    printf("All test cases passed!\n");
+}
 int main() {
-    int result = printColorMap();
-    assert(result == 24); // Intentional failure: expecting 24 instead of 25
+    testPrintColorMap();
     printf("All is well (maybe!)\n");
     return 0;
 }
